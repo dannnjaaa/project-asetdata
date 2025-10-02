@@ -48,7 +48,7 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body d-flex align-items-center">
                     <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height:50px;">
-                        <i class="fa fa-barcode"></i>
+                        <i class="fa fa-box"></i>
                     </div>
                     <div class="ms-3">
                         <small>Asset</small>

@@ -14,6 +14,7 @@
             display: flex;
             background: #f0f2f5;
             font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Prevent body scrolling */
         }
 
         /* Sidebar Styles */
@@ -50,6 +51,21 @@
         .content {
             flex-grow: 1;
             padding: 25px;
+            overflow-y: auto; /* Enable vertical scrolling */
+            height: 100vh; /* Full viewport height */
+        }
+        
+        /* Sidebar Fixed Position */
+        .sidebar {
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto; /* Enable scrolling if sidebar content is too long */
+            z-index: 1000;
+        }
+        
+        /* Content Offset */
+        .content {
+            margin-left: 240px; /* Same as sidebar width */
         }
 
         /* Card Styles */
@@ -404,7 +420,7 @@
         <hr>
         <ul class="nav flex-column gap-1">
             <li class="nav-item">
-                <a href="{{ route('dashboard') }}" class="nav-link d-flex align-items-center {{ Request::is('dashboard') ? 'active bg-warning text-dark' : '' }}" style="border-radius:8px; font-weight:500;">
+                <a href="{{ route('dashboard.admin') }}" class="nav-link d-flex align-items-center {{ Request::is('dashboard/admin') ? 'active bg-warning text-dark' : '' }}" style="border-radius:8px; font-weight:500;">
                     <i class="fa fa-gauge me-2"></i> Dashboard
                 </a>
             </li>
@@ -427,7 +443,7 @@
                     </ul>
                 </div>
             </li>
-            <li><a href="{{ url('asset') }}" class="nav-link d-flex align-items-center {{ Request::is('asset*') ? 'active bg-warning text-dark' : '' }}" style="border-radius:8px; font-weight:500;"><i class="fa fa-barcode me-2"></i> Asset</a></li>
+            <li><a href="{{ url('asset') }}" class="nav-link d-flex align-items-center {{ Request::is('asset*') ? 'active bg-warning text-dark' : '' }}" style="border-radius:8px; font-weight:500;"><i class="fa fa-box me-2"></i> Asset</a></li>
             <li><a href="{{ url('pengajuan') }}" class="nav-link d-flex align-items-center {{ Request::is('pengajuan*') ? 'active bg-warning text-dark' : '' }}" style="border-radius:8px; font-weight:500;"><i class="fa fa-thumbs-up me-2"></i> Pengajuan</a></li>
             <li><a href="{{ url('monitoring') }}" class="nav-link d-flex align-items-center {{ Request::is('monitoring*') ? 'active bg-warning text-dark' : '' }}" style="border-radius:8px; font-weight:500;"><i class="fa fa-eye me-2"></i> Monitoring</a></li>
             <li>
@@ -442,9 +458,9 @@
     </div>
 
     <!-- Konten -->
-    <div class="content">
+    <main class="content">
         @yield('content')
-    </div>
+    </main>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     

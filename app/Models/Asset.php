@@ -18,9 +18,7 @@ class Asset extends Model
         'lokasi_id',
         'spesifikasi',
         'kondisi',
-        'foto',
-        'qr_path',
-        'offline_qr_path'
+        'foto'
     ];
 
     public function kategori()

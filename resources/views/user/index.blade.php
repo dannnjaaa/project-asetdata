@@ -347,13 +347,31 @@
 <!-- Main Content -->
 <div class="container-fluid">
     <div class="card">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Data User</h5>
+            @if(auth()->check() && auth()->user()->role === 'admin')
             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createUserModal">
                 <i class="fa fa-plus me-2"></i>Tambah User
             </button>
+            @endif
         </div>
         <div class="card-body">
+            <div class="d-flex justify-content-end mb-3">
+                <form class="d-flex" method="GET" action="{{ route('user.index') }}">
+                    <input name="q" class="form-control form-control-sm me-2" type="search" placeholder="Cari nama / email / role" value="{{ $q ?? '' }}">
+                    <button class="btn btn-outline-secondary btn-sm" type="submit">Cari</button>
+                </form>
+            </div>
+
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             <div class="table-responsive">
                 <table class="table table-bordered table-hover">
@@ -369,7 +387,7 @@
                     <tbody>
                         @forelse($users as $i => $user)
                         <tr>
-                            <td>{{ $i+1 }}</td>
+                            <td>{{ ($users->currentPage() - 1) * $users->perPage() + $i + 1 }}</td>
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>{{ $user->role }}</td>
@@ -396,51 +414,16 @@
                         @endforelse
                     </tbody>
                 </table>
+                <div class="mt-3">
+                    {{ $users->links() }}
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Create Modal -->
-<div class="modal fade" id="createUserModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tambah User Baru</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('user.store') }}" method="POST">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Nama</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="role" class="form-label">Role</label>
-                        <select class="form-select" id="role" name="role" required>
-                            <option value="">Pilih Role</option>
-                            <option value="admin">Admin</option>
-                            <option value="user">User</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<!-- duplicate create modal removed (single create modal exists earlier) -->
 
 @push('scripts')
 <script>

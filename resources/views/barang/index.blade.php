@@ -8,9 +8,11 @@
                 <i class="fas fa-box-open text-primary me-2" style="font-size: 1.5rem;"></i>
                 <h5 class="mb-0">Data Barang</h5>
             </div>
+            @if(auth()->check() && auth()->user()->role === 'admin')
             <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#createBarangModal">
                 <i class="fa fa-plus"></i>Tambah Barang
             </button>
+            @endif
         </div>
         <div class="card-body">
             @include('components.notification-modal')
@@ -69,12 +71,14 @@
                                     <button type="button" class="btn btn-info btn-sm" onclick="showBarang({{ json_encode($b) }})" title="Lihat Detail">
                                         <i class="fa fa-eye"></i>
                                     </button>
+                                    @if(auth()->check() && auth()->user()->role === 'admin')
                                     <button type="button" class="btn btn-warning btn-sm" onclick="editBarang({{ json_encode($b) }})" title="Edit">
                                         <i class="fa fa-edit"></i>
                                     </button>
                                     <button type="button" class="btn btn-danger btn-sm" onclick="deleteBarang('{{ $b->id }}', '{{ $b->nama_barang }}')" title="Hapus">
                                         <i class="fa fa-trash"></i>
                                     </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

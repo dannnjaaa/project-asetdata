@@ -1,0 +1,349 @@
+@extends('layouts.user')
+@section('title', 'Pengajuan Asset')
+@section('content')
+<div class="py-6">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                Pengajuan Asset Baru
+            </h2>
+            <p class="mt-1 text-gray-500">
+                Isi formulir berikut untuk mengajukan permintaan asset baru
+            </p>
+        </div>
+
+        <!-- Progress Tracker -->
+        <div class="mb-8">
+            <div class="overflow-hidden rounded-full bg-gray-200">
+                <div class="h-2 rounded-full bg-blue-500" style="width: {{ ($step == 1 ? 33 : ($step == 2 ? 66 : 100)) }}%"></div>
+            </div>
+            <div class="mt-3 grid grid-cols-3 text-sm font-medium text-gray-600">
+                <div class="{{ $step >= 1 ? 'text-blue-600' : 'text-gray-400' }}">
+                    <span class="mr-2">1.</span> Pengisian Form
+                </div>
+                <div class="text-center {{ $step >= 2 ? 'text-blue-600' : 'text-gray-400' }}">
+                    <span class="mr-2">2.</span> Review
+                </div>
+                <div class="text-right {{ $step == 3 ? 'text-blue-600' : 'text-gray-400' }}">
+                    <span class="mr-2">3.</span> Selesai
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-6">
+                @if($step == 1)
+                <form action="{{ route('pengajuan.storeDraft') }}" method="POST" class="space-y-6">
+                    @csrf
+                    <!-- Informasi Asset -->
+                    <div class="bg-gray-50 p-6 rounded-lg space-y-6">
+                        <h3 class="text-lg font-medium text-gray-900">Informasi Asset yang Diajukan</h3>
+                        
+                        <div class="grid grid-cols-1 gap-6">
+                            <div>
+                                <label for="nama_asset" class="block text-sm font-medium text-gray-700">
+                                    Nama Asset <span class="text-red-500">*</span>
+                                </label>
+                                <div class="mt-1">
+                                    <input type="text" name="nama_asset" id="nama_asset" 
+                                           class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full text-sm border-gray-300 rounded-md h-10 px-4 @error('nama_asset') border-red-300 @enderror" 
+                                           placeholder="Contoh: Laptop Dell XPS 13"
+                                           value="{{ old('nama_asset', session('draft.nama_asset')) }}">
+                                    @error('nama_asset')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="kategori_id" class="block text-sm font-medium text-gray-700">
+                                    Kategori <span class="text-red-500">*</span>
+                                </label>
+                                <div class="mt-1">
+                                    <select id="kategori_id" name="kategori_id" 
+                                            class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full text-sm border-gray-300 rounded-md h-10 px-4 @error('kategori_id') border-red-300 @enderror">
+                                        <option value="">Pilih Kategori</option>
+                                        @foreach($kategoris ?? [] as $kategori)
+                                            <option value="{{ $kategori->id }}" {{ old('kategori_id', session('draft.kategori_id')) == $kategori->id ? 'selected' : '' }}>
+                                                {{ $kategori->nama_kategori }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('kategori_id')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="spesifikasi" class="block text-sm font-medium text-gray-700">
+                                    Spesifikasi yang Dibutuhkan <span class="text-red-500">*</span>
+                                </label>
+                                <div class="mt-1">
+                                    <textarea id="spesifikasi" name="spesifikasi" rows="4" 
+                                              class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md @error('spesifikasi') border-red-300 @enderror"
+                                              placeholder="Jelaskan spesifikasi yang dibutuhkan secara detail">{{ old('spesifikasi', session('draft.spesifikasi')) }}</textarea>
+                                    @error('spesifikasi')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detail Pengajuan -->
+                    <div class="bg-gray-50 p-4 rounded-lg space-y-4">
+                        <h3 class="font-medium text-gray-900">Detail Pengajuan</h3>
+                        
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label for="alasan" class="block text-sm font-medium text-gray-700">
+                                    Alasan Pengajuan <span class="text-red-500">*</span>
+                                </label>
+                                <div class="mt-1">
+                                    <textarea id="alasan" name="alasan" rows="3" 
+                                              class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md @error('alasan') border-red-300 @enderror"
+                                              placeholder="Jelaskan mengapa Anda membutuhkan asset ini">{{ old('alasan', session('draft.alasan')) }}</textarea>
+                                    @error('alasan')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="lokasi_id" class="block text-sm font-medium text-gray-700">
+                                    Lokasi Penempatan <span class="text-red-500">*</span>
+                                </label>
+                                <div class="mt-1">
+                                    <select id="lokasi_id" name="lokasi_id" 
+                                            class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full text-sm border-gray-300 rounded-md h-10 px-4 @error('lokasi_id') border-red-300 @enderror">
+                                        <option value="">Pilih Lokasi</option>
+                                        @foreach($lokasis ?? [] as $lokasi)
+                                            <option value="{{ $lokasi->id }}" {{ old('lokasi_id', session('draft.lokasi_id')) == $lokasi->id ? 'selected' : '' }}>
+                                                {{ $lokasi->nama_lokasi }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('lokasi_id')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="urgensi" class="block text-sm font-medium text-gray-700">
+                                    Tingkat Urgensi <span class="text-red-500">*</span>
+                                </label>
+                                <div class="mt-1">
+                                    <select id="urgensi" name="urgensi" 
+                                            class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full text-sm border-gray-300 rounded-md h-10 px-4 @error('urgensi') border-red-300 @enderror">
+                                        <option value="">Pilih Tingkat Urgensi</option>
+                                        <option value="rendah" {{ old('urgensi', session('draft.urgensi')) == 'rendah' ? 'selected' : '' }}>Rendah</option>
+                                        <option value="sedang" {{ old('urgensi', session('draft.urgensi')) == 'sedang' ? 'selected' : '' }}>Sedang</option>
+                                        <option value="tinggi" {{ old('urgensi', session('draft.urgensi')) == 'tinggi' ? 'selected' : '' }}>Tinggi</option>
+                                    </select>
+                                    @error('urgensi')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="pt-4 border-t border-gray-200">
+                        <div class="flex justify-end space-x-3">
+                            <a href="{{ route('pengajuan.index') }}" 
+                               class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Batal
+                            </a>
+                            <button type="submit"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Lanjutkan ke Review
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                @elseif($step == 2)
+                <div>
+                    <!-- Review Section -->
+                    <div class="bg-gray-50 p-6 rounded-lg space-y-6">
+                        <h3 class="text-lg font-medium text-gray-900">Review Pengajuan</h3>
+                        
+                        <!-- Review Form Content -->
+                        <div class="space-y-4">
+                            <div>
+                                <span class="text-sm font-medium text-gray-500">Nama Asset:</span>
+                                <p class="mt-1">{{ session('draft.nama_asset') }}</p>
+                            </div>
+                            
+                            <div>
+                                <span class="text-sm font-medium text-gray-500">Kategori:</span>
+                                <p class="mt-1">{{ optional($kategoris->find(session('draft.kategori_id')))->nama_kategori }}</p>
+                            </div>
+                            
+                            <div>
+                                <span class="text-sm font-medium text-gray-500">Spesifikasi:</span>
+                                <p class="mt-1 whitespace-pre-line">{{ session('draft.spesifikasi') }}</p>
+                            </div>
+                            
+                            <div>
+                                <span class="text-sm font-medium text-gray-500">Alasan Pengajuan:</span>
+                                <p class="mt-1 whitespace-pre-line">{{ session('draft.alasan') }}</p>
+                            </div>
+                            
+                            <div>
+                                <span class="text-sm font-medium text-gray-500">Lokasi Penempatan:</span>
+                                <p class="mt-1">{{ optional($lokasis->find(session('draft.lokasi_id')))->nama_lokasi }}</p>
+                            </div>
+                            
+                            <div>
+                                <span class="text-sm font-medium text-gray-500">Tingkat Urgensi:</span>
+                                <p class="mt-1">{{ ucfirst(session('draft.urgensi')) }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="flex justify-center gap-4 pt-6">
+                            <a href="{{ route('pengajuan.create', ['step' => 1]) }}" 
+                               class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                                Kembali & Edit
+                            </a>
+                            <form action="{{ route('pengajuan.store') }}" method="POST" class="inline-block">
+                                @csrf
+                                <button type="submit"
+                                        class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                                    Konfirmasi & Kirim
+                                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                @elseif($step == 3)
+                <div class="space-y-6">
+                    <!-- Success Header -->
+                    <div class="text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+                            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900">Pengajuan Berhasil Terkirim!</h3>
+                        <p class="mt-2 text-sm text-gray-600 max-w-md mx-auto">
+                            Terima kasih atas pengajuan Anda. Tim admin akan meninjau permintaan Anda secepatnya.
+                        </p>
+                    </div>
+
+                    <!-- Status Card -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div class="space-y-4">
+                            <!-- Status Badge -->
+                            <div class="flex justify-center">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Menunggu Persetujuan
+                                </span>
+                            </div>
+
+                            <!-- Timeline -->
+                            <div class="relative">
+                                <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                                    <div class="w-full border-t border-gray-200"></div>
+                                </div>
+                                <div class="relative flex justify-between">
+                                    <div>
+                                        <span class="bg-white px-2 text-sm text-gray-500">
+                                            Pengajuan Dikirim
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="bg-white px-2 text-sm text-gray-500">
+                                            {{ now()->format('d M Y H:i') }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Next Steps -->
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-blue-800">Langkah Selanjutnya</h3>
+                                        <div class="mt-2 text-sm text-blue-700">
+                                            <ul class="list-disc pl-5 space-y-1">
+                                                <li>Admin akan meninjau pengajuan Anda dalam 1-3 hari kerja</li>
+                                                <li>Anda akan menerima notifikasi saat status pengajuan berubah</li>
+                                                <li>Pantau status pengajuan di halaman daftar pengajuan</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-center space-x-4">
+                        <a href="{{ route('pengajuan.index') }}"
+                           class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                            Lihat Daftar Pengajuan
+                        </a>
+                        <a href="{{ route('dashboard.user') }}"
+                           class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                            Kembali ke Dashboard
+                        </a>
+                    </div>
+                </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="mt-6">
+            <div class="rounded-lg bg-blue-50 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-blue-800">
+                            Informasi Pengajuan
+                        </h3>
+                        <div class="mt-2 text-sm text-blue-700">
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li>Pengajuan akan diproses dalam waktu 3-5 hari kerja.</li>
+                                <li>Pastikan semua informasi yang diisi sudah benar dan lengkap.</li>
+                                <li>Anda dapat memantau status pengajuan di halaman daftar pengajuan.</li>
+                                <li>Tingkat urgensi akan mempengaruhi prioritas pemrosesan pengajuan.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

@@ -11,9 +11,11 @@
                         <i class="fas fa-tags me-2 text-primary" style="font-size: 1.5rem;"></i>
                         <h5 class="mb-0">Data Kategori</h5>
                     </div>
+                    @if(auth()->check() && auth()->user()->role === 'admin')
                     <button type="button" class="btn btn-primary btn-sm d-flex align-items-center" onclick="openCreateModal()">
                         <i class="fa fa-plus me-2"></i> Tambah Kategori
                     </button>
+                    @endif
                 </div>
                 <div class="card-body">
                     @include('components.notification-modal')
@@ -40,6 +42,7 @@
                                     </td>
                                     <td>
                                         <div class="action-buttons d-flex justify-content-center gap-2">
+                                            @if(auth()->check() && auth()->user()->role === 'admin')
                                             <button type="button" class="btn btn-warning btn-sm" 
                                                     onclick="openEditModal('{{ $k->id }}', '{{ $k->nama_kategori }}')" 
                                                     title="Edit">
@@ -50,6 +53,9 @@
                                                     title="Hapus">
                                                 <i class="fa fa-trash"></i>
                                             </button>
+                                            @else
+                                            <small class="text-muted">-</small>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

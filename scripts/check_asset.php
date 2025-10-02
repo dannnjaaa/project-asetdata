@@ -17,7 +17,6 @@ if(!$asset){
 
 echo "Asset id: {$asset->id}\n";
 echo "foto db value: {$asset->foto}\n";
-echo "qr_path db value: {$asset->qr_path}\n";
 
 if ($asset->foto) {
     $fotoExists = Storage::disk('public')->exists($asset->foto);
@@ -34,18 +33,7 @@ if ($asset->foto) {
     echo "no foto set in DB\n";
 }
 
-if ($asset->qr_path) {
-    $qrExists = Storage::disk('public')->exists($asset->qr_path);
-    echo "qr exists on disk? ".($qrExists?"YES":"NO")."\n";
-    if($qrExists){
-        echo "qr absolute path: ".storage_path('app/public/'.$asset->qr_path)."\n";
-    }
-} else {
-    echo "no qr_path set in DB\n";
-}
-
 // print web-accessible URLs
 $base = rtrim(config('app.url'), '/');
 if($asset->foto){ echo "public URL foto: {$base}/storage/{$asset->foto}\n"; }
-if($asset->qr_path){ echo "public URL qr: {$base}/storage/{$asset->qr_path}\n"; }
 

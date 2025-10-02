@@ -4,11 +4,13 @@
 @section('content')
 <div class="container-fluid">
     <div class="card">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Data Lokasi</h5>
+            @if(auth()->check() && auth()->user()->role === 'admin')
             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createLokasiModal">
                 <i class="fa fa-plus me-2"></i>Tambah Lokasi
             </button>
+            @endif
         </div>
         <div class="card-body">
             @include('components.notification-modal')
@@ -34,6 +36,7 @@
                                         onclick='showLokasi(@json($l))'>
                                         <i class="fa fa-eye"></i>
                                     </button>
+                                    @if(auth()->check() && auth()->user()->role === 'admin')
                                     <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" title="Edit Lokasi"
                                         onclick='editLokasi(@json($l))'>
                                         <i class="fa fa-edit"></i>
@@ -42,6 +45,7 @@
                                         onclick='deleteLokasi({{ $l->id }}, "{{ $l->nama_lokasi }}")'>
                                         <i class="fa fa-trash"></i>
                                     </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
