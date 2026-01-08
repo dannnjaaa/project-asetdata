@@ -39,8 +39,13 @@
                     <p class="mb-0 text-dark">Ringkasan aktivitas dan statistik sistem manajemen aset</p>
                 </div>
                 <div class="text-end">
-                    <p class="mb-0"><i class="fas fa-calendar-alt me-2"></i>{{ now()->format('l, d F Y') }}</p>
-                    <p class="mb-0"><i class="fas fa-clock me-2"></i>{{ now()->format('H:i') }} WIB</p>
+                    <p class="mb-0"><i class="fas fa-calendar-alt me-2"></i>
+                        <span class="js-local-datetime" data-timestamp="{{ now()->toIso8601String() }}" data-format="date-long">-</span>
+                    </p>
+                    <p class="mb-0"><i class="fas fa-clock me-2"></i>
+                        <span class="js-local-datetime" data-timestamp="{{ now()->toIso8601String() }}" data-format="time-short">-</span>
+                        <small class="text-muted ms-2 js-timezone"></small>
+                    </p>
                 </div>
             </div>
         </div>
@@ -278,7 +283,9 @@
                                             {{ ucfirst($request->status) }}
                                         </span>
                                     </td>
-                                    <td>{{ $request->created_at->format('d M Y') }}</td>
+                                    <td>
+                                        <span class="js-local-date" data-timestamp="{{ $request->created_at->toIso8601String() }}">-</span>
+                                    </td>
                                     <td class="text-end pe-4">
                                         <a href="{{ route('pengajuan.show', $request->id) }}" 
                                            class="btn btn-sm btn-outline-primary">
@@ -382,26 +389,26 @@
                     <div class="timeline-sm">
                         @forelse($recentActivities as $activity)
                         <div class="timeline-item pb-3">
-                            @php
-                                $activityTime = is_object($activity['created_at']) 
-                                    ? $activity['created_at']->format('H:i') 
-                                    : \Carbon\Carbon::parse($activity['created_at'])->format('H:i');
-                                    
-                                $borderColor = match($activity['type'] ?? 'default') {
-                                    'asset' => 'border-success',
-                                    'request' => 'border-primary',
-                                    default => 'border-info'
-                                };
-                                
-                                $icon = match($activity['type'] ?? 'default') {
-                                    'asset' => 'box',
-                                    'request' => 'file-alt',
-                                    default => 'circle'
-                                };
-                            @endphp
+                                @php
+                                    $activityTs = is_object($activity['created_at'])
+                                        ? $activity['created_at']->toIso8601String()
+                                        : \Carbon\Carbon::parse($activity['created_at'])->toIso8601String();
+
+                                    $borderColor = match($activity['type'] ?? 'default') {
+                                        'asset' => 'border-success',
+                                        'request' => 'border-primary',
+                                        default => 'border-info'
+                                    };
+
+                                    $icon = match($activity['type'] ?? 'default') {
+                                        'asset' => 'box',
+                                        'request' => 'file-alt',
+                                        default => 'circle'
+                                    };
+                                @endphp
                             <div class="d-flex align-items-center mb-1">
                                 <i class="fas fa-{{ $icon }} text-muted me-2"></i>
-                                <span class="text-muted small">{{ $activityTime }}</span>
+                                <span class="text-muted small js-local-time" data-timestamp="{{ $activityTs }}">-</span>
                             </div>
                             <div class="timeline-body border-start border-2 {{ $borderColor }} ps-3">
                                 <h6 class="mb-1">{{ $activity['title'] }}</h6>
@@ -438,4 +445,48 @@
     position: relative;
 }
 </style>
+<script>
+    (function(){
+        function formatLocal(iso, format){
+            try{
+                const d = new Date(iso);
+                if(isNaN(d)) return '-';
+                if(format === 'date-long'){
+                    return d.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                }
+                if(format === 'time-short'){
+                    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+                }
+                return d.toLocaleString();
+            }catch(e){
+                return '-';
+            }
+        }
+
+        document.querySelectorAll('.js-local-datetime').forEach(function(el){
+            const ts = el.getAttribute('data-timestamp');
+            const fmt = el.getAttribute('data-format') || '';
+            el.textContent = formatLocal(ts, fmt);
+        });
+
+        document.querySelectorAll('.js-local-date').forEach(function(el){
+            const ts = el.getAttribute('data-timestamp');
+            try{ el.textContent = new Date(ts).toLocaleDateString(); }catch(e){ el.textContent = '-'; }
+        });
+
+        document.querySelectorAll('.js-local-time').forEach(function(el){
+            const ts = el.getAttribute('data-timestamp');
+            try{ el.textContent = new Date(ts).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }); }catch(e){ el.textContent = '-'; }
+        });
+
+        // show timezone abbreviation if possible
+        const tzEl = document.querySelector('.js-timezone');
+        if(tzEl){
+            try{
+                const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+                tzEl.textContent = tz ? tz : '';
+            }catch(e){ /* ignore */ }
+        }
+    })();
+</script>
 @endsection

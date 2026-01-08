@@ -24,7 +24,7 @@
                         Halo, {{ auth()->user()->name }}!
                     </h1>
                     <p class="text-base text-gray-600">
-                        Selamat datang di Panel Pengguna AsetData
+                        Selamat datang di Dashboard Pengguna AsetData
                     </p>
                 </div>
                 <a href="{{ route('profil.show') }}" 
@@ -70,16 +70,16 @@
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:col-span-2">
             <h3 class="text-base font-semibold text-gray-900 mb-4">Menu Utama</h3>
             <div class="grid grid-cols-2 gap-4">
-                <a href="{{ route('monitoring.index') }}" 
+                <a href="{{ route('pengajuan.index') }}" 
                    class="flex items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-150">
                     <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0 mr-4">
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h8M8 12h8M8 17h8M5 7h.01M5 12h.01M5 17h.01"/>
                         </svg>
                     </div>
                     <div>
-                        <h4 class="text-sm font-medium text-gray-900">Monitor Asset</h4>
-                        <p class="text-sm text-gray-600 mt-0.5">Pantau status dan kondisi asset</p>
+                        <h4 class="text-sm font-medium text-gray-900">Daftar Pengajuan</h4>
+                        <p class="text-sm text-gray-600 mt-0.5">Lihat daftar pengajuan Anda</p>
                     </div>
                 </a>
 
@@ -196,9 +196,9 @@
                                     <div class="flex items-center gap-3">
                                         <div @class([
                                             'w-2 h-2 rounded-full',
-                                            'bg-blue-500' => $request->status === 'pending',
-                                            'bg-green-500' => $request->status === 'approved',
-                                            'bg-red-500' => $request->status === 'rejected',
+                                            'bg-blue-500' => $request->status_normal === 'pending',
+                                            'bg-green-500' => $request->status_normal === 'approved',
+                                            'bg-red-500' => $request->status_normal === 'rejected',
                                         ])></div>
                                         <div class="text-sm">
                                             <p class="font-medium text-gray-900">
@@ -209,11 +209,11 @@
                                     </div>
                                     <span @class([
                                         'text-xs px-2 py-1 rounded-full',
-                                        'bg-blue-100 text-blue-700' => $request->status === 'pending',
-                                        'bg-green-100 text-green-700' => $request->status === 'approved',
-                                        'bg-red-100 text-red-700' => $request->status === 'rejected',
+                                        'bg-blue-100 text-blue-700' => $request->status_normal === 'pending',
+                                        'bg-green-100 text-green-700' => $request->status_normal === 'approved',
+                                        'bg-red-100 text-red-700' => $request->status_normal === 'rejected',
                                     ])>
-                                        {{ ucfirst($request->status) }}
+                                        {{ ucfirst($request->status_normal) }}
                                     </span>
                                 </div>
                             @endforeach

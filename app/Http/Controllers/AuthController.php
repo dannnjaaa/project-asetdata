@@ -83,20 +83,34 @@ class AuthController extends Controller
             ->pluck('total', 'kondisi')
             ->toArray();
         
-        // Get user's requests
+        // Get user's requests and normalize status keys to match the dashboard labels
         $userId = Auth::id();
-        $userRequests = \App\Models\Pengajuan::where('user_id', $userId)
+        $rawCounts = \App\Models\Pengajuan::where('user_id', $userId)
             ->select('status', \DB::raw('count(*) as total'))
             ->groupBy('status')
             ->pluck('total', 'status')
             ->toArray();
-        
-        // Get latest requests for this user
+
+        // Map DB statuses to dashboard keys
+        $userRequests = [
+            'pending' => $rawCounts['pending'] ?? 0,
+            'approved' => $rawCounts['diterima'] ?? 0,
+            'rejected' => $rawCounts['ditolak'] ?? 0,
+        ];
+
+        // Get latest requests for this user and add a normalized status for the view
         $latestRequests = \App\Models\Pengajuan::where('user_id', $userId)
             ->with('asset')
             ->latest()
             ->take(5)
-            ->get();
+            ->get()
+            ->map(function ($r) {
+                $r->status_normal = $r->status;
+                if ($r->status === 'diterima') $r->status_normal = 'approved';
+                if ($r->status === 'ditolak') $r->status_normal = 'rejected';
+                if ($r->status === 'pending') $r->status_normal = 'pending';
+                return $r;
+            });
 
         return view('user.dashboard', compact(
             'assetCount',

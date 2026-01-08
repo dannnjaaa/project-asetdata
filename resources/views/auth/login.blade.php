@@ -10,8 +10,8 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
         :root {
-            --primary-color: #ffc107;
-            --primary-dark: #e6ac00;
+            --primary-color: #5a9bd8;
+            --primary-dark: #a7c9f1;
             --secondary-color: #6c757d;
             --text-color: #2d3436;
             --background-color: #f8f9fa;
@@ -151,7 +151,7 @@
 
         .form-control:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+            box-shadow: 0 0 0 0.25rem rgba(139, 162, 231, 0.25);
         }
 
         .btn-login {
@@ -168,7 +168,7 @@
         .btn-login:hover {
             background: var(--primary-dark);
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+            box-shadow: 0 5px 15px rgba(139, 162, 231, 0.25);
         }
 
         .form-error {
@@ -225,7 +225,7 @@
 
         .form-control:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+            box-shadow: 0 0 0 0.25rem rgba(139, 162, 231, 0.25);
         }
 
         .input-group .form-control:focus + .input-group-text {

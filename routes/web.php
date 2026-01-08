@@ -29,6 +29,11 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::post('/monitoring/export/{type}', [App\Http\Controllers\MonitoringController::class, 'export'])
         ->name('monitoring.export')
         ->where('type', 'excel|pdf');
+
+    // Pengajuan export (admin)
+    Route::post('/pengajuan/export/{format}', [App\Http\Controllers\PengajuanController::class, 'export'])
+        ->name('pengajuan.export')
+        ->where('format', 'excel|csv');
 });
 
 // Asset listing and detail should be available to authenticated users (view-only)
@@ -59,8 +64,6 @@ Route::middleware('auth')->group(function () {
     
     // Monitoring - different views for admin and regular users
     Route::get('/monitoring', [App\Http\Controllers\MonitoringController::class, 'index'])->name('monitoring.index');
-    Route::get('/monitoring/export/{type}', [App\Http\Controllers\MonitoringController::class, 'export'])
-        ->name('monitoring.export')
-        ->where('type', 'excel|pdf');
+    // Export is handled via POST by admin route (defined above). Removed duplicate GET route.
 });
 

@@ -13,6 +13,14 @@
         </div>
         <div class="card-body">
             <div class="row g-4">
+                @php $fotoPath = $pengajuan->foto ?? null; @endphp
+                @if($fotoPath)
+                <div class="col-12 mb-3">
+                    <div class="text-center">
+                        <img src="{{ asset('storage/' . $fotoPath) }}" alt="foto pengajuan" style="max-width:300px;border-radius:8px;">
+                    </div>
+                </div>
+                @endif
                 <div class="col-md-6">
                     <div class="card h-100 border">
                         <div class="card-header bg-light py-3">

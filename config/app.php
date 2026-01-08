@@ -110,7 +110,7 @@ return [
     |
     */
 
-    'providers' => [
+    'providers' => array_values(array_filter([
 
         /*
          * Laravel Framework Service Providers...
@@ -138,11 +138,11 @@ return [
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
 
-        /*
-         * Package Service Providers...
-         */
-        Maatwebsite\Excel\ExcelServiceProvider::class,
-        Barryvdh\DomPDF\ServiceProvider::class,
+    /*
+     * Package Service Providers...
+     */
+    // Maatwebsite\Excel\ExcelServiceProvider::class, // removed until package is installed
+    class_exists(\Barryvdh\DomPDF\ServiceProvider::class) ? \Barryvdh\DomPDF\ServiceProvider::class : null,
 
         /*
          * Application Service Providers...
@@ -151,7 +151,7 @@ return [
         App\Providers\AuthServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-    ],
+    ])),
 
     /*
     |--------------------------------------------------------------------------
@@ -164,7 +164,7 @@ return [
     |
     */
 
-    'aliases' => [
+    'aliases' => array_filter([
         'App' => Illuminate\Support\Facades\App::class,
         'Arr' => Illuminate\Support\Arr::class,
         'Artisan' => Illuminate\Support\Facades\Artisan::class,
@@ -204,9 +204,9 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
-        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
-        'PDF' => Barryvdh\DomPDF\Facade\Pdf::class,
-    ],
+    // 'Excel' => Maatwebsite\Excel\Facades\Excel::class, // removed until package is installed
+        'PDF' => class_exists(\Barryvdh\DomPDF\Facade\Pdf::class) ? \Barryvdh\DomPDF\Facade\Pdf::class : null,
+    ]),
 
     'previous_keys' => [
         ...array_filter(

@@ -8,8 +8,7 @@ use App\Exports\AssetExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Maatwebsite\Excel\Facades\Excel;
+// facades for Excel and PDF are used conditionally at runtime to avoid fatal errors
 
 class MonitoringController extends Controller
 {
@@ -84,17 +83,59 @@ class MonitoringController extends Controller
             }
             
             if ($type === 'excel') {
-                return Excel::download(new AssetExport, "assets_{$timestamp}.xlsx");
+                // If maatwebsite/excel is available, use it. Otherwise fall back to a simple CSV download.
+                if (class_exists('Maatwebsite\\Excel\\Facades\\Excel')) {
+                    return \Maatwebsite\Excel\Facades\Excel::download(new AssetExport, "assets_{$timestamp}.xlsx");
+                }
+
+                // CSV fallback
+                $filename = "assets_{$timestamp}.csv";
+                $headers = [
+                    'Content-Type' => 'text/csv',
+                    'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+                ];
+
+                $columns = ['Kode','Nama','Kategori','Lokasi','Spesifikasi','Kondisi'];
+
+                $callback = function() use ($assets, $columns) {
+                    $out = fopen('php://output', 'w');
+                    // BOM for Excel compatibility (optional)
+                    fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
+                    // Use semicolon as delimiter for better compatibility with Excel on some locales
+                    fputcsv($out, $columns, ';');
+
+                    foreach ($assets as $a) {
+                        $row = [
+                            $a->kode ?? '',
+                            $a->nama ?? '',
+                            optional($a->kategori)->nama_kategori ?? '',
+                            optional($a->lokasi)->nama_lokasi ?? '',
+                            $a->spesifikasi ?? '',
+                            $a->kondisi ?? '',
+                        ];
+                        fputcsv($out, $row, ';');
+                    }
+
+                    fclose($out);
+                };
+
+                return response()->stream($callback, 200, $headers);
             }
 
             if ($type === 'pdf') {
-                $pdf = PDF::loadView('exports.assets-pdf', compact('assets'));
-                return $pdf->download("assets_{$timestamp}.pdf");
+                if (class_exists('Barryvdh\\DomPDF\\Facade\\Pdf')) {
+                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.assets-pdf', compact('assets'));
+                    return $pdf->download("assets_{$timestamp}.pdf");
+                }
+
+                // Fallback: render a printable HTML page so admin can use browser Print -> Save as PDF
+                return response()->view('exports.assets-print', compact('assets', 'timestamp'))
+                                 ->header('Content-Type', 'text/html');
             }
 
             return back()->with('error', 'Invalid export type');
         } catch (\Exception $e) {
-            \Log::error('Export error: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Export error: ' . $e->getMessage());
             return back()->with('error', 'Failed to export data. Please try again.');
         }
     }

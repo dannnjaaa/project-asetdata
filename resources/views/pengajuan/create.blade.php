@@ -35,7 +35,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="p-6">
                 @if($step == 1)
-                <form action="{{ route('pengajuan.storeDraft') }}" method="POST" class="space-y-6">
+                <form action="{{ route('pengajuan.storeDraft') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                     @csrf
                     <!-- Informasi Asset -->
                     <div class="bg-gray-50 p-6 rounded-lg space-y-6">
@@ -91,6 +91,24 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Foto Upload -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <label class="block text-sm font-medium text-gray-700">Foto {{ session('pengajuan_draft.foto') ? '' : '(asset)' }}</label>
+                        <input type="file" name="foto" id="foto" accept="image/*" class="mt-2" {{ session('pengajuan_draft.foto') ? '' : 'required' }}>
+                        @error('foto')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                        <div id="fotoPreview" class="mt-3" style="display:none;">
+                            <img id="fotoPreviewImg" src="#" alt="Preview" style="max-width:200px; border-radius:8px;">
+                        </div>
+                        @if(session('pengajuan_draft.foto'))
+                            <div class="mt-3">
+                                <p class="text-sm text-gray-600">Foto yang tersimpan di draft:</p>
+                                <img src="{{ asset('storage/' . session('pengajuan_draft.foto')) }}" style="max-width:200px; border-radius:8px;">
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Detail Pengajuan -->
@@ -203,6 +221,12 @@
                                 </div>
                             </dl>
                         </div>
+                        @if(session('pengajuan_draft.foto'))
+                            <div class="p-6 border-t border-gray-200">
+                                <h4 class="font-medium text-gray-900 mb-2">Foto Draft</h4>
+                                <div><img src="{{ asset('storage/' . session('pengajuan_draft.foto')) }}" style="max-width:300px;border-radius:8px;"></div>
+                            </div>
+                        @endif
 
                         <!-- Request Details -->
                         <div class="p-6">
@@ -259,7 +283,7 @@
                             </svg>
                             Kembali & Edit
                         </button>
-                        <button type="button" onclick="submitPengajuan()"
+                        <button type="button" data-action="submit-pengajuan" onclick="submitPengajuan()"
                                 class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -272,41 +296,6 @@
                     <form id="pengajuanForm" action="{{ route('pengajuan.store') }}" method="POST" style="display: none;">
                         @csrf
                     </form>
-                </div>
-                @elseif($step == 2)
-                <div class="text-center py-8 space-y-6">
-                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100">
-                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <div class="space-y-2">
-                        <h3 class="text-lg font-medium text-gray-900">Konfirmasi Pengajuan Asset</h3>
-                        <p class="text-sm text-gray-600 max-w-md mx-auto">
-                            Pastikan Anda telah mengisi semua informasi dengan benar. 
-                            Setelah dikonfirmasi, pengajuan akan diproses oleh admin.
-                        </p>
-                    </div>
-                    
-                    <div class="flex justify-center gap-4 pt-4">
-                        <a href="{{ route('pengajuan.create', ['step' => 1]) }}" 
-                           class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                            <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                            </svg>
-                            Kembali & Edit
-                        </a>
-                        <form action="{{ route('pengajuan.store') }}" method="POST" class="inline-block">
-                            @csrf
-                            <button type="submit"
-                                    class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                                Konfirmasi & Kirim
-                                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
                 </div>
                 @elseif($step == 3)
                 <!-- Success Modal -->
@@ -353,12 +342,18 @@
 
                         <!-- Content -->
                         <div class="mt-6 space-y-6">
+                            @if(session('pengajuan_complete.foto'))
+                                <div class="text-center">
+                                    <h4 class="font-medium text-gray-900 mb-2">Foto Pengajuan</h4>
+                                    <img src="{{ asset('storage/' . session('pengajuan_complete.foto')) }}" alt="Foto Pengajuan" style="max-width:400px; border-radius:8px; margin:0 auto;">
+                                </div>
+                            @endif
                             <!-- Requestor Info -->
                             <div class="grid grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <p class="text-gray-500">Diajukan Oleh:</p>
                                     <p class="font-medium text-gray-900">{{ session('pengajuan_complete.nama_pengaju') }}</p>
-                                    <p class="text-gray-500">{{ session('pengajuan_complete.tanggal') }}</p>
+                                    <p class="text-gray-500"><span class="time-local" data-timestamp="{{ session('pengajuan_complete.tanggal_iso') ?? '' }}">{{ session('pengajuan_complete.tanggal') }}</span></p>
                                 </div>
                                 <div class="text-right">
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
@@ -509,23 +504,49 @@
         <script>
         document.addEventListener('DOMContentLoaded', function () {
             const successModal = document.getElementById('successModal');
-            
+
             // Show modal on page load for step 3
             if ({{ $step }} === 3) {
-                showModal();
+                if (successModal) {
+                    successModal.classList.remove('hidden');
+                }
             }
 
-            // Handle draft form submission (step 1)
+            // Foto preview for step 1
+            const fotoInput = document.getElementById('foto');
+            if (fotoInput) {
+                fotoInput.addEventListener('change', function(e){
+                    const file = e.target.files[0];
+                    const preview = document.getElementById('fotoPreview');
+                    const img = document.getElementById('fotoPreviewImg');
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(evt) {
+                            img.src = evt.target.result;
+                            preview.style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        preview.style.display = 'none';
+                        img.src = '#';
+                    }
+                });
+            }
+
+            // Handle draft form submission (step 1) via AJAX so we can keep session draft
             const draftForm = document.querySelector('form[action="{{ route('pengajuan.storeDraft') }}"]');
             if (draftForm) {
                 draftForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
-                    
+                    // Clear previous error hints
+                    this.querySelectorAll('.text-red-600').forEach(el => el.remove());
+                    this.querySelectorAll('.border-red-300').forEach(el => el.classList.remove('border-red-300'));
+
                     try {
                         const response = await fetch(this.action, {
                             method: 'POST',
                             headers: {
-                                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                                'X-CSRF-TOKEN': this.querySelector('input[name="_token"]').value,
                                 'Accept': 'application/json'
                             },
                             body: new FormData(this)
@@ -533,7 +554,7 @@
 
                         if (response.ok) {
                             window.location.href = "{{ route('pengajuan.create', ['step' => 2]) }}";
-                        } else {
+                        } else if (response.status === 422) {
                             const data = await response.json();
                             if (data.errors) {
                                 Object.keys(data.errors).forEach(field => {
@@ -548,6 +569,9 @@
                                     }
                                 });
                             }
+                        } else {
+                            const text = await response.text();
+                            console.error('Unexpected response:', text);
                         }
                     } catch (error) {
                         console.error('Error:', error);
@@ -555,33 +579,19 @@
                 });
             }
 
-            function showModal() {
-                if (successModal) {
-                    successModal.classList.remove('hidden');
-                }
-            }
-
-            window.hideModal = function() {
-                if (successModal) {
-                    successModal.classList.add('hidden');
-                }
-            };
-
             // Function to submit pengajuan (called from button onclick)
             window.submitPengajuan = async function() {
                 const form = document.getElementById('pengajuanForm');
-                const submitButton = document.querySelector('button[onclick="submitPengajuan()"]');
-                
+                const submitButton = document.querySelector('button[data-action="submit-pengajuan"]') || document.querySelector('button[onclick="submitPengajuan()"]');
+                if (!form) return;
+                if (!submitButton) return;
+
+                const originalHTML = submitButton.innerHTML;
+
                 try {
                     // Disable button and show loading state
                     submitButton.disabled = true;
-                    submitButton.innerHTML = `
-                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Memproses...
-                    `;
+                    submitButton.innerHTML = 'Memproses...';
 
                     const response = await fetch(form.action, {
                         method: 'POST',
@@ -593,7 +603,8 @@
                         body: JSON.stringify({})  // Sending empty object since we use session data
                     });
 
-                    const data = await response.json();
+                    let data = {};
+                    try { data = await response.json(); } catch (e) { /* ignore non-json */ }
 
                     if (response.ok) {
                         if (data.redirect) {
@@ -604,22 +615,10 @@
                     } else {
                         // Reset button state
                         submitButton.disabled = false;
-                        submitButton.innerHTML = `
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            Konfirmasi & Kirim
-                        `;
+                        submitButton.innerHTML = originalHTML;
 
                         // Show error message
-                        let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
-                        if (data.error) {
-                            errorMessage = data.error;
-                        } else if (data.errors) {
-                            errorMessage = Object.values(data.errors).join('\n');
-                        }
-                        
-                        // Create and show error alert
+                        const errorMessage = data.error || (data.errors ? Object.values(data.errors).flat().join('\n') : 'Terjadi kesalahan. Silakan coba lagi.');
                         const alertDiv = document.createElement('div');
                         alertDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded';
                         alertDiv.role = 'alert';
@@ -628,25 +627,13 @@
                             <span class="block sm:inline">${errorMessage}</span>
                         `;
                         document.body.appendChild(alertDiv);
-                        
-                        // Remove alert after 5 seconds
-                        setTimeout(() => {
-                            alertDiv.remove();
-                        }, 5000);
+                        setTimeout(() => alertDiv.remove(), 5000);
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    
                     // Reset button state
                     submitButton.disabled = false;
-                    submitButton.innerHTML = `
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Konfirmasi & Kirim
-                    `;
-                    
-                    // Show error alert
+                    submitButton.innerHTML = originalHTML;
                     const alertDiv = document.createElement('div');
                     alertDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded';
                     alertDiv.role = 'alert';
@@ -655,69 +642,33 @@
                         <span class="block sm:inline">Terjadi kesalahan pada server. Silakan coba lagi.</span>
                     `;
                     document.body.appendChild(alertDiv);
-                    
-                    // Remove alert after 5 seconds
-                    setTimeout(() => {
-                        alertDiv.remove();
-                    }, 5000);
+                    setTimeout(() => alertDiv.remove(), 5000);
                 }
             };
-
-            function clearErrors() {
-                document.querySelectorAll('.text-red-600').forEach(el => el.remove());
-                document.querySelectorAll('.border-red-300').forEach(el => el.classList.remove('border-red-300'));
-            }
-
-            form.addEventListener('submit', async function (e) {
-                e.preventDefault();
-                clearErrors();
-
-                const url = form.action;
-                const token = document.querySelector('input[name="_token"]').value;
-                const formData = new FormData(form);
-
-                try {
-                    const res = await fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': token,
-                            'Accept': 'application/json'
-                        },
-                        body: formData
-                    });
-
-                    if (res.status === 201) {
-                        // success
-                        modal.classList.remove('hidden');
-                        modal.classList.add('flex');
-                        form.reset();
-                    } else if (res.status === 422) {
-                        const data = await res.json();
-                        if (data.errors) {
-                            Object.keys(data.errors).forEach(function (field) {
-                                const el = document.querySelector('[name="' + field + '"]');
-                                if (el) {
-                                    el.classList.add('border-red-300');
-                                    const p = document.createElement('p');
-                                    p.className = 'mt-1 text-sm text-red-600';
-                                    p.textContent = data.errors[field][0];
-                                    el.parentNode.appendChild(p);
-                                }
-                            });
-                        }
-                    } else {
-                        // fallback: navigate to server response
-                        window.location = url;
-                    }
-                } catch (err) {
-                    console.error(err);
-                    window.location = url;
+            // Define hideModal so the Tutup button can close the modal
+            window.hideModal = function() {
+                const successModal = document.getElementById('successModal');
+                if (successModal) {
+                    successModal.classList.add('hidden');
                 }
-            });
-
-            closeBtn.addEventListener('click', function () {
-                modal.classList.remove('flex');
-                modal.classList.add('hidden');
+            };
+        });
+        </script>
+        <script>
+        // Shared time-local formatter for user pengajuan pages
+        document.addEventListener('DOMContentLoaded', function(){
+            const fmt = new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+            document.querySelectorAll('.time-local').forEach(function(el){
+                const iso = el.getAttribute('data-timestamp');
+                if(!iso) return;
+                try{
+                    const dt = new Date(iso);
+                    if(isNaN(dt.getTime())) return;
+                    const parts = fmt.formatToParts(dt);
+                    const mapping = {};
+                    parts.forEach(p => mapping[p.type] = p.value);
+                    el.textContent = `${mapping.day} ${mapping.month} ${mapping.year} ${mapping.hour}:${mapping.minute}`;
+                }catch(e){ console.warn('time-local format error', e); }
             });
         });
         </script>

@@ -166,7 +166,7 @@
                                 </label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="edit_password" name="password">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('edit_password')">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('edit_password', this)">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
@@ -267,7 +267,12 @@
                         </div>
                         <div class="mb-3">
                             <label for="password{{ $user->id }}" class="form-label">Password Baru (kosongkan jika tidak ingin mengubah)</label>
-                            <input type="password" class="form-control" id="password{{ $user->id }}" name="password">
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password{{ $user->id }}" name="password">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password{{ $user->id }}', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -332,7 +337,12 @@
                     </div>
                     <div class="mb-3">
                         <label for="createPassword" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="createPassword" name="password" required>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="createPassword" name="password" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('createPassword', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -452,13 +462,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     // Function to toggle password visibility
-    window.togglePassword = function(inputId) {
+    window.togglePassword = function(inputId, btn) {
         const input = document.getElementById(inputId);
+        if(!input) return;
         const type = input.type === 'password' ? 'text' : 'password';
         input.type = type;
-        
-        const icon = event.currentTarget.querySelector('i');
-        icon.className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+
+        // If button is provided, toggle its icon
+        if(btn && btn.querySelector) {
+            const icon = btn.querySelector('i');
+            if(icon) icon.className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+        }
     };
     // Initialize Modals
     const showModal = new bootstrap.Modal(document.getElementById('showUserModal'), {

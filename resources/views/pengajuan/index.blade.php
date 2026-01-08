@@ -22,7 +22,7 @@
                     <thead class="table-light">
                         <tr>
                             <th class="text-center" style="width: 60px">ID</th>
-                            <th>Asset</th>
+                            <th>Asset / Foto</th>
                             <th>Nama Pengaju</th>
                             <th>Catatan</th>
                             <th style="width: 100px">Status</th>
@@ -35,7 +35,15 @@
                         <tr>
                             <td class="text-center">{{ $p->id }}</td>
                             <td>
-                                <span class="fw-medium">{{ $p->asset_id }}</span>
+                                <div class="d-flex align-items-center">
+                                    @if(!empty($p->foto))
+                                        <img src="{{ asset('storage/' . $p->foto) }}" alt="foto" style="max-width:64px; border-radius:6px; margin-right:8px;">
+                                    @endif
+                                    <div>
+                                        <span class="fw-medium">{{ optional($p->asset)->nama ?? 'Asset #' . $p->asset_id }}</span>
+                                        <div class="text-muted small">{{ optional($p->asset)->kode }}</div>
+                                    </div>
+                                </div>
                             </td>
                             <td>{{ $p->nama_pengaju }}</td>
                             <td>
@@ -98,191 +106,118 @@
             </table>
         </div>
     </div>
-</div>
-
-<!-- Confirmation Modal -->
-<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-body p-4 text-center">
-                <div class="mb-4">
-                    <div class="avatar avatar-lg bg-success bg-opacity-10 rounded-circle mx-auto mb-3">
-                        <i class="fas fa-check-circle fa-2x text-success"></i>
-                    </div>
-                    <h4 class="modal-title mb-2" id="confirmModalLabel">Konfirmasi Pengajuan</h4>
-                    <p class="text-muted mb-0">Anda akan menyetujui pengajuan ini. Setelah disetujui, sistem akan memproses permintaan pengajuan.</p>
-                </div>
-                <div class="d-flex gap-2 justify-content-center">
-                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-2"></i>Batal
-                    </button>
-                    <form id="confirmForm" method="POST" class="d-inline">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit" class="btn btn-success px-4">
-                            <i class="fas fa-check me-2"></i>Setuju
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
+@endsection
 
-<!-- Reject Modal -->
-<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-body p-4">
-                <div class="text-center mb-4">
-                    <div class="avatar avatar-lg bg-warning bg-opacity-10 rounded-circle mx-auto mb-3">
-                        <i class="fas fa-exclamation-circle fa-2x text-warning"></i>
-                    </div>
-                    <h4 class="modal-title" id="rejectModalLabel">Tolak Pengajuan</h4>
-                    <p class="text-muted">Harap berikan alasan penolakan yang jelas agar pengaju dapat memahami keputusan ini.</p>
-                </div>
-                <form id="rejectForm" method="POST">
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+        // When confirm/reject/delete buttons are clicked, populate the modal forms with the pengajuan id
+        const confirmModal = document.getElementById('confirmModal');
+        const rejectModal = document.getElementById('rejectModal');
+        const deleteModal = document.getElementById('deleteModal');
+
+        function onShowModal(e) {
+                const button = e.relatedTarget;
+                if (!button) return;
+                const id = button.getAttribute('data-pengajuan-id');
+                if (!id) return;
+
+                if (e.target === confirmModal) {
+                        const form = confirmModal.querySelector('form');
+                        form.action = '/pengajuan/' + id + '/confirm';
+                }
+                if (e.target === rejectModal) {
+                        const form = rejectModal.querySelector('form');
+                        form.action = '/pengajuan/' + id + '/reject';
+                }
+                if (e.target === deleteModal) {
+                        const form = deleteModal.querySelector('form');
+                        form.action = '/pengajuan/' + id;
+                }
+        }
+
+        // Bootstrap 5 modal show event wiring (support both bootstrap and fallback)
+        [confirmModal, rejectModal, deleteModal].forEach(modal => {
+                if (!modal) return;
+                modal.addEventListener('show.bs.modal', onShowModal);
+                // Fallback: when using data-bs-target with no bootstrap JS, listen for click on buttons
+                modal.addEventListener('beforeshow', onShowModal);
+        });
+});
+</script>
+
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Konfirmasi Pengajuan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Apakah Anda yakin ingin mengonfirmasi pengajuan ini?
+            </div>
+            <div class="modal-footer">
+                <form method="POST" action="" id="confirmForm">
                     @csrf
                     @method('PATCH')
-                    <div class="form-floating mb-3">
-                        <textarea class="form-control border-0 bg-light" 
-                                  id="alasan_penolakan" 
-                                  name="alasan_penolakan" 
-                                  style="height: 120px; resize: none;"
-                                  placeholder="Masukkan alasan penolakan"
-                                  required></textarea>
-                        <label for="alasan_penolakan">Alasan Penolakan</label>
-                    </div>
-                    <div class="d-flex gap-2 justify-content-end">
-                        <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">
-                            <i class="fas fa-times me-2"></i>Batal
-                        </button>
-                        <button type="submit" class="btn btn-danger px-4">
-                            <i class="fas fa-ban me-2"></i>Tolak
-                        </button>
-                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success">Konfirmasi</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Delete Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-body p-4 text-center">
-                <div class="mb-4">
-                    <div class="avatar avatar-lg bg-danger bg-opacity-10 rounded-circle mx-auto mb-3">
-                        <i class="fas fa-trash-alt fa-2x text-danger"></i>
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tolak Pengajuan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" id="rejectForm" action="">
+                    @csrf
+                    @method('PATCH')
+                    <div class="mb-3">
+                        <label for="alasan_penolakan" class="form-label">Alasan Penolakan</label>
+                        <textarea name="alasan_penolakan" id="alasan_penolakan" class="form-control" rows="3" required></textarea>
                     </div>
-                    <h4 class="modal-title mb-2" id="deleteModalLabel">Hapus Pengajuan</h4>
-                    <div class="alert alert-danger bg-danger bg-opacity-10 border-0 mb-3">
-                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
-                        <span class="text-danger">Peringatan: Tindakan ini tidak dapat dibatalkan!</span>
-                    </div>
-                    <p class="text-muted mb-0">
-                        Apakah Anda yakin ingin menghapus pengajuan ini? 
-                        Semua data terkait pengajuan ini akan dihapus secara permanen.
-                    </p>
-                </div>
-                <div class="d-flex gap-2 justify-content-center">
-                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-2"></i>Batal
-                    </button>
-                    <form id="deleteForm" method="POST" class="d-inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger px-4">
-                            <i class="fas fa-trash-alt me-2"></i>Hapus
-                        </button>
-                    </form>
-                </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" form="rejectForm" class="btn btn-danger">Tolak</button>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-.modal .avatar {
-    width: 64px;
-    height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Hapus Pengajuan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Apakah Anda yakin ingin menghapus pengajuan ini? Tindakan ini tidak dapat dibatalkan.
+            </div>
+            <div class="modal-footer">
+                <form method="POST" id="deleteForm" action="">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger">Hapus</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-.modal .form-control:focus {
-    box-shadow: none;
-    border-color: #dee2e6;
-}
-
-.modal .form-floating label {
-    padding-left: 1rem;
-}
-
-.modal .form-floating textarea {
-    padding: 1rem;
-}
-
-.modal .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 500;
-    padding: 0.5rem 1.5rem;
-}
-
-.modal .alert {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    margin-bottom: 1rem;
-    border-radius: 0.5rem;
-}
-
-.modal-content {
-    border-radius: 1rem;
-    overflow: hidden;
-}
-</style>
-
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Confirm Modal Handler
-        const confirmModal = document.getElementById('confirmModal');
-        confirmModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const pengajuanId = button.getAttribute('data-pengajuan-id');
-            const form = document.getElementById('confirmForm');
-            form.setAttribute('action', '{{ url("/pengajuan") }}/' + pengajuanId + '/confirm');
-        });
-
-        // Reject Modal Handler
-        const rejectModal = document.getElementById('rejectModal');
-        rejectModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const pengajuanId = button.getAttribute('data-pengajuan-id');
-            const form = document.getElementById('rejectForm');
-            form.setAttribute('action', '{{ url("/pengajuan") }}/' + pengajuanId + '/reject');
-        });
-
-        // Delete Modal Handler
-        const deleteModal = document.getElementById('deleteModal');
-        deleteModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const pengajuanId = button.getAttribute('data-pengajuan-id');
-            const form = document.getElementById('deleteForm');
-            form.setAttribute('action', '{{ url("/pengajuan") }}/' + pengajuanId);
-        });
-
-        // Clear reject modal textarea when closed
-        rejectModal.addEventListener('hidden.bs.modal', function() {
-            document.getElementById('alasan_penolakan').value = '';
-        });
-    });
-</script>
 @endpush
-
-@endsection
