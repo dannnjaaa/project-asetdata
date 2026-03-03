@@ -19,6 +19,7 @@ class Pengajuan extends Model
     // include user_id in fillable
     protected $fillable = [
         'asset_id',
+        'nama_asset',
         'user_id',
         'nama_pengaju',
         'catatan',

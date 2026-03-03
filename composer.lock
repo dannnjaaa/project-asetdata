@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5293cdae235abb3ee0bdf5a089f488ef",
+    "content-hash": "2265c0d584fc8f0d9f549e1369ab053d",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -3582,16 +3582,16 @@
         },
         {
             "name": "picqer/php-barcode-generator",
-            "version": "v3.2.3",
+            "version": "v3.2.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/picqer/php-barcode-generator.git",
-                "reference": "fbb1de7454fcc8600133818bc1103abeb86479a4"
+                "reference": "16a5cfb74eb8b7a0aa2e60427d98599aa8259380"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/picqer/php-barcode-generator/zipball/fbb1de7454fcc8600133818bc1103abeb86479a4",
-                "reference": "fbb1de7454fcc8600133818bc1103abeb86479a4",
+                "url": "https://api.github.com/repos/picqer/php-barcode-generator/zipball/16a5cfb74eb8b7a0aa2e60427d98599aa8259380",
+                "reference": "16a5cfb74eb8b7a0aa2e60427d98599aa8259380",
                 "shasum": ""
             },
             "require": {
@@ -3657,9 +3657,9 @@
             ],
             "support": {
                 "issues": "https://github.com/picqer/php-barcode-generator/issues",
-                "source": "https://github.com/picqer/php-barcode-generator/tree/v3.2.3"
+                "source": "https://github.com/picqer/php-barcode-generator/tree/v3.2.4"
             },
-            "time": "2025-07-29T07:15:20+00:00"
+            "time": "2026-01-08T08:57:40+00:00"
         },
         {
             "name": "psr/clock",

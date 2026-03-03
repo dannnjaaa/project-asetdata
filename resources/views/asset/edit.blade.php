@@ -12,6 +12,12 @@
                 @csrf
                 @method('PUT')
                 <div class="mb-3">
+                    <label class="form-label">Kode</label>
+                    <input type="text" name="kode" value="{{ old('kode', $asset->kode) }}" class="form-control" required>
+                    <small class="text-muted">Masukkan kode unik untuk asset (bebas).</small>
+                </div>
+
+                <div class="mb-3">
                     <label class="form-label">Nama</label>
                     <input type="text" name="nama" value="{{ old('nama', $asset->nama) }}" class="form-control" required>
                 </div>

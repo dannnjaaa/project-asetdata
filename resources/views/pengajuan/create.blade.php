@@ -221,11 +221,13 @@
                                 </div>
                             </dl>
                         </div>
-                        @if(session('pengajuan_draft.foto'))
+                       @if(session('pengajuan_draft.foto'))
                             <div class="p-6 border-t border-gray-200">
-                                <h4 class="font-medium text-gray-900 mb-2">Foto Draft</h4>
-                                <div><img src="{{ asset('storage/' . session('pengajuan_draft.foto')) }}" style="max-width:300px;border-radius:8px;"></div>
+                               <h4 class="font-medium text-gray-900 mb-2">Foto Draft</h4>
+                                    <div style="padding: 0 16px;">
+                              <img src="{{ asset('storage/' . session('pengajuan_draft.foto')) }}" style="max-width:100%; max-height:300px; object-fit:contain; border-radius:8px; display:block; margin:0 auto;">
                             </div>
+                        </div>
                         @endif
 
                         <!-- Request Details -->
@@ -345,7 +347,7 @@
                             @if(session('pengajuan_complete.foto'))
                                 <div class="text-center">
                                     <h4 class="font-medium text-gray-900 mb-2">Foto Pengajuan</h4>
-                                    <img src="{{ asset('storage/' . session('pengajuan_complete.foto')) }}" alt="Foto Pengajuan" style="max-width:400px; border-radius:8px; margin:0 auto;">
+                                   <img src="{{ asset('storage/' . session('pengajuan_complete.foto')) }}" alt="Foto Pengajuan" style="max-width:100%; max-height:350px; object-fit:contain; border-radius:8px; display:block; margin:0 auto;">
                                 </div>
                             @endif
                             <!-- Requestor Info -->

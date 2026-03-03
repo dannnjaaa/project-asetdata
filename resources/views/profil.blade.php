@@ -35,9 +35,12 @@
     <!-- Profile Information -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Left Column - Photo Upload -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-base font-semibold text-gray-900 mb-4">Foto Profil</h3>
-            
+       <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+    <div class="logo-container text-center mb-4">
+        <img src="{{ asset('images/adevlogo.webp') }}" alt="Adev Logo" class="logo" 
+             style="width: 180px; height: auto; margin: 20px auto; display: block; object-fit: cover;" />
+         </div>
+            </div>
             <form action="{{ route('profil.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')

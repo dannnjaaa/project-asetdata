@@ -13,7 +13,16 @@
         </div>
         <div class="card-body">
             <div class="row g-4">
-                @php $fotoPath = $pengajuan->foto ?? null; @endphp
+                @php
+                    $fotoPath = $pengajuan->foto ?? null;
+                    // Display kode: prefer related asset kode, otherwise generate PNJ-YYYYMMDD-###
+                    $displayKode = null;
+                    if (!empty(optional($pengajuan->asset)->kode)) {
+                        $displayKode = $pengajuan->asset->kode;
+                    } else {
+                        $displayKode = 'PJN-' . $pengajuan->created_at->format('Ymd') . '-' . str_pad($pengajuan->id, 3, '0', STR_PAD_LEFT);
+                    }
+                @endphp
                 @if($fotoPath)
                 <div class="col-12 mb-3">
                     <div class="text-center">
@@ -21,6 +30,9 @@
                     </div>
                 </div>
                 @endif
+                <div class="col-12 mb-3 text-center">
+                    <h6 class="text-muted">No. {{ $displayKode }}</h6>
+                </div>
                 <div class="col-md-6">
                     <div class="card h-100 border">
                         <div class="card-header bg-light py-3">
@@ -118,12 +130,36 @@
                                     </dd>
                                 </dl>
                             @else
-                                <div class="alert alert-warning d-flex align-items-center mb-0">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <div>
-                                        Asset terkait tidak ditemukan (mungkin telah dihapus atau belum dibuat).
-                                    </div>
-                                </div>
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4 text-muted">Kode Asset</dt>
+                                    <dd class="col-sm-8 mb-3">
+                                        <span class="badge bg-secondary">{{ 'PJN-' . $pengajuan->created_at->format('Ymd') . '-' . str_pad($pengajuan->id, 3, '0', STR_PAD_LEFT) }}</span>
+                                    </dd>
+
+                                    <dt class="col-sm-4 text-muted">Nama Asset</dt>
+                                    <dd class="col-sm-8 mb-3">
+                                        <span class="fw-medium">{{ $pengajuan->nama_asset ?? 'Tidak ada nama asset' }}</span>
+                                    </dd>
+
+                                    <dt class="col-sm-4 text-muted">Kategori</dt>
+                                    <dd class="col-sm-8 mb-3">
+                                        <i class="fas fa-tag me-1 text-primary"></i>
+                                        Tidak ada kategori
+                                    </dd>
+
+                                    <dt class="col-sm-4 text-muted">Lokasi</dt>
+                                    <dd class="col-sm-8 mb-3">
+                                        <i class="fas fa-map-marker-alt me-1 text-primary"></i>
+                                        Tidak ada lokasi
+                                    </dd>
+
+                                    <dt class="col-sm-4 text-muted">Spesifikasi</dt>
+                                    <dd class="col-sm-8">
+                                        <div class="border rounded p-2 bg-light">
+                                            Tidak ada spesifikasi
+                                        </div>
+                                    </dd>
+                                </dl>
                             @endif
                         </div>
                     </div>

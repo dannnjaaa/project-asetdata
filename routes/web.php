@@ -8,9 +8,15 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
 Route::get('/', function () {
-    return view('welcome');
+    if (Auth::check()) {
+        $user = Auth::user();
+        if ($user->role === 'admin') {
+            return redirect()->route('dashboard.admin');
+        }
+        return redirect()->route('dashboard.user');
+    }
+    return redirect()->route('login.form');
 });
-
 // Role-aware dashboard entry. If authenticated, redirect based on role; otherwise to welcome
 Route::get('/dashboard', [App\Http\Controllers\AuthController::class, 'homeRedirect'])->name('dashboard');
 Route::get('/profil', [ProfilController::class, 'show'])->name('profil.show');
@@ -33,7 +39,7 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     // Pengajuan export (admin)
     Route::post('/pengajuan/export/{format}', [App\Http\Controllers\PengajuanController::class, 'export'])
         ->name('pengajuan.export')
-        ->where('format', 'excel|csv');
+        ->where('format', 'excel|csv|pdf');
 });
 
 // Asset listing and detail should be available to authenticated users (view-only)

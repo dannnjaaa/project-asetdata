@@ -179,29 +179,14 @@ class PengajuanController extends Controller
                     ->with('error', 'Data pengajuan tidak ditemukan. Silakan isi form kembali.');
             }
 
-            // Generate unique kode for asset
-            $kode = 'AS' . strtoupper(Str::random(6));
-            while (Asset::where('kode', $kode)->exists()) {
-                $kode = 'AS' . strtoupper(Str::random(6));
-            }
 
-            // Create the asset
-            $asset = Asset::create([
-                'kode' => $kode,
-                'nama' => $draft['nama_asset'],
-                'kategori_id' => $draft['kategori_id'],
-                'lokasi_id' => $draft['lokasi_id'],
-                'spesifikasi' => $draft['spesifikasi'],
-                'kondisi' => 'Baik', // Default condition for new assets
-                'status' => 'pending',
-            ]);
-
-            // Create the pengajuan
+            // Create the pengajuan record only (do NOT create an Asset)
             $pengajuan = Pengajuan::create([
-                'asset_id' => $asset->id,
+                'asset_id' => null,
+                'nama_asset' => $draft['nama_asset'] ?? null,
                 'user_id' => $request->user()->id,
                 'nama_pengaju' => $request->user()->name,
-                'catatan' => trim($draft['alasan'] . "\n\nTingkat urgensi: " . $draft['urgensi']),
+                'catatan' => trim(($draft['alasan'] ?? '') . "\n\nTingkat urgensi: " . ($draft['urgensi'] ?? '')),
                 'status' => 'pending'
             ]);
 
@@ -214,37 +199,37 @@ class PengajuanController extends Controller
                     Storage::disk('public')->move($draft['foto'], $destPath);
                     $pengajuan->foto = $destPath;
                     $pengajuan->save();
-                    // Also attach foto to the created asset so it displays in the asset listing
-                    try {
-                        $asset->foto = $destPath;
-                        $asset->save();
-                    } catch (\Throwable $ee) {
-                        \Illuminate\Support\Facades\Log::warning('Failed to attach foto to asset: ' . $ee->getMessage());
-                    }
                 } catch (\Exception $e) {
                     \Illuminate\Support\Facades\Log::error('Failed to move pengajuan foto: ' . $e->getMessage());
                 }
             }
 
-            // Load relationships
-            $asset->load('kategori', 'lokasi');
-            
-            // Save completed pengajuan data to session for step 3
+            // Prepare completion data for the session (step 3)
+            $kategoriName = null;
+            $lokasiName = null;
+            try {
+                $kategori = Kategori::find($draft['kategori_id'] ?? null);
+                $lokasi = Lokasi::find($draft['lokasi_id'] ?? null);
+                $kategoriName = $kategori->nama_kategori ?? null;
+                $lokasiName = $lokasi->nama_lokasi ?? null;
+            } catch (\Throwable $e) {
+                // ignore
+            }
+
             $complete = [
-                    'kode_asset' => $kode,
-                    'nama_asset' => $draft['nama_asset'],
-                    'kategori' => $asset->kategori->nama_kategori,
-                    'lokasi' => $asset->lokasi->nama_lokasi,
-                    'spesifikasi' => $draft['spesifikasi'],
-                    'alasan' => $draft['alasan'],
-                    'urgensi' => $draft['urgensi'],
-            'tanggal' => now()->format('d F Y H:i'),
-            'tanggal_iso' => now()->toIso8601String(),
-                    'no_pengajuan' => 'PJN-' . now()->format('Ymd') . '-' . str_pad($pengajuan->id, 3, '0', STR_PAD_LEFT),
-                    'nama_pengaju' => $request->user()->name
+                'kode_asset' => null,
+                'nama_asset' => $draft['nama_asset'] ?? null,
+                'kategori' => $kategoriName,
+                'lokasi' => $lokasiName,
+                'spesifikasi' => $draft['spesifikasi'] ?? null,
+                'alasan' => $draft['alasan'] ?? null,
+                'urgensi' => $draft['urgensi'] ?? null,
+                'tanggal' => now()->format('d F Y H:i'),
+                'tanggal_iso' => now()->toIso8601String(),
+                'no_pengajuan' => 'PJN-' . now()->format('Ymd') . '-' . str_pad($pengajuan->id, 3, '0', STR_PAD_LEFT),
+                'nama_pengaju' => $request->user()->name
             ];
 
-            // If pengajuan has foto, include it in the complete data
             if (!empty($pengajuan->foto)) {
                 $complete['foto'] = $pengajuan->foto;
             }
@@ -281,72 +266,88 @@ class PengajuanController extends Controller
      */
     public function export($format)
     {
-        if (!Auth::check() || Auth::user()->role !== 'admin') {
-            abort(403);
-        }
-
-        $pengajuans = Pengajuan::with(['asset','user'])->orderBy('created_at','desc')->get();
-
-        if ($pengajuans->isEmpty()) {
-            return back()->with('error', 'No pengajuan to export');
-        }
-
-        $timestamp = now()->format('Y-m-d_H-i-s');
-
-        // If Maatwebsite Excel available, try to produce a styled XLSX via a simple array export
-        if ($format === 'excel' && class_exists('Maatwebsite\\Excel\\Facades\\Excel')) {
-            // Build array rows (headings + data)
-            $rows = [];
-            foreach ($pengajuans as $p) {
-                $rows[] = [
-                    $p->id,
-                    optional($p->asset)->kode,
-                    optional($p->asset)->nama,
-                    $p->nama_pengaju ?? optional($p->user)->name,
-                    $p->catatan,
-                    ucfirst($p->status),
-                    $p->created_at->format('d M Y H:i'),
-                ];
+        try {
+            if (!Auth::check() || Auth::user()->role !== 'admin') {
+                abort(403);
             }
 
-            $headings = ['ID','Kode Asset','Nama Asset','Nama Pengaju','Catatan','Status','Tanggal Pengajuan'];
+            $pengajuans = Pengajuan::with(['asset','user'])->orderBy('created_at','desc')->get();
 
-            return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\PengajuanExport(array_merge([$headings], $rows)), "pengajuan_{$timestamp}.xlsx");
-        }
-
-        // CSV fallback
-        $filename = "pengajuan_{$timestamp}.csv";
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ];
-
-        $columns = ['ID','Kode Asset','Nama Asset','Nama Pengaju','Catatan','Status','Tanggal Pengajuan'];
-
-        $callback = function() use ($pengajuans, $columns) {
-            $out = fopen('php://output', 'w');
-            // BOM for Excel compatibility (optional)
-            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
-            // Use comma delimiter so CSV is separated into columns in Excel
-            fputcsv($out, $columns, ',');
-
-            foreach ($pengajuans as $p) {
-                $row = [
-                    $p->id,
-                    optional($p->asset)->kode ?? '',
-                    optional($p->asset)->nama ?? '',
-                    $p->nama_pengaju ?? optional($p->user)->name,
-                    $p->catatan,
-                    ucfirst($p->status),
-                    $p->created_at->format('d M Y H:i'),
-                ];
-                fputcsv($out, $row, ',');
+            if ($pengajuans->isEmpty()) {
+                return back()->with('error', 'No pengajuan to export');
             }
 
-            fclose($out);
-        };
+            $timestamp = now()->format('Y-m-d_H-i-s');
 
-        return response()->stream($callback, 200, $headers);
+            if ($format === 'excel') {
+                if (class_exists('Maatwebsite\\Excel\\Facades\\Excel')) {
+                    $rows = [];
+                    foreach ($pengajuans as $p) {
+                        $kode = optional($p->asset)->kode ?? ('PJN-' . $p->created_at->format('Ymd') . '-' . str_pad($p->id, 3, '0', STR_PAD_LEFT));
+                        $rows[] = [
+                            $p->id,
+                            $kode,
+                            $p->nama_asset ?? optional($p->asset)->nama ?? '',
+                            $p->nama_pengaju ?? optional($p->user)->name ?? '',
+                            $p->catatan ?? '',
+                            ucfirst($p->status),
+                            $p->created_at->format('d M Y H:i'),
+                        ];
+                    }
+
+                    $headings = ['ID','Kode Asset','Nama Asset','Nama Pengaju','Catatan','Status','Tanggal Pengajuan'];
+                    return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\PengajuanExport(array_merge([$headings], $rows)), "pengajuan_{$timestamp}.xlsx");
+                }
+
+                // CSV fallback for excel
+                $filename = "pengajuan_{$timestamp}.csv";
+                $headers = [
+                    'Content-Type' => 'text/csv; charset=UTF-8',
+                    'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+                ];
+
+                $columns = ['ID','Kode Asset','Nama Asset','Nama Pengaju','Catatan','Status','Tanggal Pengajuan'];
+
+                $callback = function() use ($pengajuans, $columns) {
+                    $out = fopen('php://output', 'w');
+                    fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
+                    fputcsv($out, $columns, ',');
+
+                    foreach ($pengajuans as $p) {
+                        $kode = optional($p->asset)->kode ?? ('PJN-' . $p->created_at->format('Ymd') . '-' . str_pad($p->id, 3, '0', STR_PAD_LEFT));
+                        $row = [
+                            $p->id,
+                            $kode,
+                            $p->nama_asset ?? optional($p->asset)->nama ?? '',
+                            $p->nama_pengaju ?? optional($p->user)->name ?? '',
+                            $p->catatan ?? '',
+                            ucfirst($p->status),
+                            $p->created_at->format('d M Y H:i'),
+                        ];
+                        fputcsv($out, $row, ',');
+                    }
+
+                    fclose($out);
+                };
+
+                return response()->stream($callback, 200, $headers);
+            }
+
+            if ($format === 'pdf') {
+                if (class_exists('Barryvdh\\DomPDF\\Facade\\Pdf')) {
+                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.pengajuans-pdf', compact('pengajuans'));
+                    return $pdf->download("pengajuan_{$timestamp}.pdf");
+                }
+
+                return response()->view('exports.pengajuans-print', compact('pengajuans', 'timestamp'))
+                                 ->header('Content-Type', 'text/html');
+            }
+
+            return back()->with('error', 'Invalid export type');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Pengajuan export error: ' . $e->getMessage());
+            return back()->with('error', 'Failed to export pengajuan.');
+        }
     }
 
 

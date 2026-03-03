@@ -16,12 +16,32 @@
                 </div>
             </div>
 
+            <div class="d-flex justify-content-end mb-3">
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown">Export Data</button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <form action="{{ route('pengajuan.export', ['format' => 'excel']) }}" method="POST" class="d-inline w-100">
+                                @csrf
+                                <button type="submit" class="dropdown-item">Export ke Excel</button>
+                            </form>
+                        </li>
+                        <li>
+                            <form action="{{ route('pengajuan.export', ['format' => 'pdf']) }}" method="POST" class="d-inline w-100">
+                                @csrf
+                                <button type="submit" class="dropdown-item">Export ke PDF</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
             @php $pengajuans = \App\Models\Pengajuan::orderBy('id', 'asc')->limit(200)->get(); @endphp
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th class="text-center" style="width: 60px">ID</th>
+                            <th class="text-center" style="width: 60px">No</th>
                             <th>Asset / Foto</th>
                             <th>Nama Pengaju</th>
                             <th>Catatan</th>
@@ -40,8 +60,15 @@
                                         <img src="{{ asset('storage/' . $p->foto) }}" alt="foto" style="max-width:64px; border-radius:6px; margin-right:8px;">
                                     @endif
                                     <div>
-                                        <span class="fw-medium">{{ optional($p->asset)->nama ?? 'Asset #' . $p->asset_id }}</span>
-                                        <div class="text-muted small">{{ optional($p->asset)->kode }}</div>
+                                        <span class="fw-medium">{{ $p->nama_asset ?? optional($p->asset)->nama ?? ('Asset ' . ($p->asset_id ?? $p->id)) }}</span>
+                                        @php
+                                            if (!empty(optional($p->asset)->kode)) {
+                                                $listKode = $p->asset->kode;
+                                            } else {
+                                                $listKode = 'PJN-' . $p->created_at->format('Ymd') . '-' . str_pad($p->id, 3, '0', STR_PAD_LEFT);
+                                            }
+                                        @endphp
+                                        <div class="text-muted small">{{ $listKode }}</div>
                                     </div>
                                 </div>
                             </td>

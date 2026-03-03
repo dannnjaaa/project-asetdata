@@ -14,7 +14,7 @@
             display: flex;
             background: #f0f2f5;
             font-family: 'Inter', sans-serif;
-            overflow: hidden; /* Prevent body scrolling */
+            overflow-x: hidden; /* allow vertical scrolling on small screens */
         }
 
         /* Sidebar Styles */
@@ -65,7 +65,7 @@
         
         /* Content Offset */
         .content {
-            margin-left: 240px; /* Same as sidebar width */
+            margin-left: 250px; /* Same as sidebar width */
         }
 
         /* Card Styles */
@@ -405,16 +405,89 @@
             margin-bottom: 15px;
         }
 
+            /* Mobile responsive tweaks */
+            @media (max-width: 767.98px) {
+                /* Sidebar becomes off-canvas */
+                .sidebar {
+                    width: 75%;
+                    max-width: 320px;
+                    transform: translateX(-110%);
+                    transition: transform 0.25s ease;
+                    position: fixed;
+                    left: 0;
+                    top: 0;
+                    height: 100vh;
+                    z-index: 1050;
+                    box-shadow: 2px 0 12px rgba(0,0,0,0.12);
+                }
+
+                .sidebar.open {
+                    transform: translateX(0);
+                }
+
+                /* Content should take full width on mobile */
+                .content {
+                    margin-left: 0;
+                    padding-top: 64px; /* space for mobile topbar */
+                    height: auto;
+                }
+
+                /* Mobile top bar shown only on small screens */
+                .mobile-topbar {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    position: fixed;
+                    left: 0;
+                    right: 0;
+                    top: 0;
+                    height: 56px;
+                    padding: 0 12px;
+                    background: #fff;
+                    border-bottom: 1px solid #eee;
+                    z-index: 1049;
+                }
+
+                .mobile-topbar .brand {
+                    font-weight: 700;
+                    font-size: 1.05rem;
+                }
+
+                /* Overlay behind sidebar when open */
+                .mobile-overlay {
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0,0,0,0.4);
+                    z-index: 1048;
+                    display: none;
+                }
+
+                .mobile-overlay.show {
+                    display: block;
+                }
+
+                /* Hide large paddings on small screens */
+                .card-header, .modal-header, .modal-body, .modal-footer {
+                    padding-left: 12px;
+                    padding-right: 12px;
+                }
+            }
+
     </style>
 </head>
 <body>
+    <!-- Mobile Topbar -->
+    <div class="mobile-topbar d-md-none">
+        <button id="mobileMenuBtn" class="btn btn-light btn-sm" aria-label="Menu"><i class="fa fa-bars"></i></button>
+        <div class="brand ms-2">adev</div>
+        <div class="ms-auto"></div>
+    </div>
+    <div id="mobileOverlay" class="mobile-overlay" aria-hidden="true"></div>
     <!-- Sidebar -->
-    <div class="sidebar d-flex flex-column align-items-stretch" style="width: 240px; background: #fff; border-right: 1px solid #eee; min-height: 100vh;">
+    <div class="sidebar d-flex flex-column align-items-stretch" style="background: #fff; border-right: 1px solid #eee; min-height: 100vh;">
         <div class="mb-3 text-center">
-            <a href="{{ url('profil') }}">
-                <img src="..." alt="Foto Profil" class="w-20 h-20 rounded-50% object-cover" />
-            </a>
-            <h5 class="mt-2 fw-bold">Data Asset</h5>
+            <img src="{{ asset('images/adevlogo.webp') }}" alt="Adev Logo" style="width:160px;height:auto;display:block;margin:12px 0 6px 12px;object-fit:cover;" />
+            <h5 class="mt-3 fw-bold">Data Asset IT</h5>
         </div>
         <p class="mb-2"><span class="fw-bold">Selamat Datang</span><br><b>Admin</p></b>
         <hr>
@@ -480,6 +553,43 @@
     @stack('scripts')
     
     <script>
+        // Mobile sidebar toggle
+        (function(){
+            var mobileBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.sidebar');
+            var overlay = document.getElementById('mobileOverlay');
+            var mobileTopbar = document.querySelector('.mobile-topbar');
+
+            function openSidebar(){
+                if(sidebar) sidebar.classList.add('open');
+                if(overlay) overlay.classList.add('show');
+                if(overlay) overlay.setAttribute('aria-hidden','false');
+            }
+            function closeSidebar(){
+                if(sidebar) sidebar.classList.remove('open');
+                if(overlay) overlay.classList.remove('show');
+                if(overlay) overlay.setAttribute('aria-hidden','true');
+            }
+
+            if(mobileBtn){
+                mobileBtn.addEventListener('click', function(e){
+                    if(sidebar && sidebar.classList.contains('open')) closeSidebar();
+                    else openSidebar();
+                });
+            }
+
+            if(overlay){
+                overlay.addEventListener('click', closeSidebar);
+            }
+
+            // Close sidebar when resizing to desktop
+            window.addEventListener('resize', function(){
+                if(window.innerWidth > 768){
+                    closeSidebar();
+                }
+            });
+        })();
+
         document.addEventListener('DOMContentLoaded', function() {
             // Check for session messages
             @if(session('success'))

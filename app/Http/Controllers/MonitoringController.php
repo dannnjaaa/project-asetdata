@@ -101,6 +101,9 @@ class MonitoringController extends Controller
                     $out = fopen('php://output', 'w');
                     // BOM for Excel compatibility (optional)
                     fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
+                    // Inform Excel about the delimiter so it splits columns correctly when opening the CSV
+                    // Excel recognizes a leading line like "sep=;" to set the separator for the file
+                    fprintf($out, "sep=;\r\n");
                     // Use semicolon as delimiter for better compatibility with Excel on some locales
                     fputcsv($out, $columns, ';');
 

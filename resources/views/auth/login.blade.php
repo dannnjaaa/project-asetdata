@@ -10,7 +10,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
         :root {
-            --primary-color: #5a9bd8;
+            --primary-color: #eacf49e0;
             --primary-dark: #a7c9f1;
             --secondary-color: #6c757d;
             --text-color: #2d3436;

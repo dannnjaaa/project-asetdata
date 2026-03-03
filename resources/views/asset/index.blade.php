@@ -20,6 +20,14 @@
                     <div class="alert alert-success">{{ session('success') }}</div>
                 @endif
 
+                <form method="GET" action="{{ route('asset.index') }}" class="mb-3">
+                    <div class="input-group">
+                        <input type="search" name="q" class="form-control" placeholder="Cari kode asset..." value="{{ request('q') }}" aria-label="Cari kode asset">
+                        <button class="btn btn-outline-primary" type="submit">Cari</button>
+                        <a href="{{ route('asset.index') }}" class="btn btn-outline-danger">Reset</a>
+                    </div>
+                </form>
+
                 <style>
                     /* Inline, high-specificity rules to ensure uniform action button sizing */
                     .asset-action, .asset-action.btn, .asset-action.button {
@@ -124,6 +132,12 @@
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label class="form-label">Kode Asset <span class="text-danger">*</span></label>
+                                        <input type="text" name="kode" class="form-control" required />
+                                        <small class="text-muted">Masukkan kode asset (ADEV-IT-LPT-0001)</small>
+                                    </div>
+
                                     <div class="mb-3">
                                         <label class="form-label">Nama Asset <span class="text-danger">*</span></label>
                                         <input type="text" name="nama" class="form-control" required />
@@ -294,4 +308,3 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 @endpush
-

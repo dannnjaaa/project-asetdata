@@ -20,7 +20,10 @@
                 <div class="md:col-span-2">
                     <div class="mb-4 text-center">
                         <h3 class="text-sm font-medium mb-2">Foto Pengajuan</h3>
-                        <img src="{{ asset('storage/' . $pengajuan->foto) }}" alt="Foto Pengajuan" class="mx-auto" style="max-width:480px; border-radius:8px;">
+                       <div class="w-full overflow-hidden rounded-lg px-4 py-2">
+                         <img src="{{ asset('storage/' . $pengajuan->foto) }}" alt="Foto Pengajuan" class="w-full max-h-[400px] object-contain mx-auto rounded-lg" style="max-width:100%; display:block;"/>
+                    </div>
+
                     </div>
                 </div>
             @endif
